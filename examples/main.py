@@ -1,18 +1,21 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
-import threading
-import queue
-import time
-import traceback, sys
+from __archive.working_threads import *
 
-from ctypes import *
-import cv2
-import sys
-import numpy as np
+class  CustomDialog(QDialog):
 
-from working_threads import *
+    def __init__(self, *args, **kwargs):
+        super(CustomDialog, self).__init__(*args, **kwargs)
 
+        self.setWindowTitle('Hello')
+
+        QBtn = QDialogButtonBox.OK | QDialogButtonBox.Cancel
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.buttonBox)
+        self.setLayout(self.layout)
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -25,6 +28,12 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         self.l = QLabel("")
         self.l.setMinimumSize(QSize(640,480))
+        self.l.setAutoFillBackground(True)
+        self.l.setScaledContents(True)
+        self.l.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        pal = QPalette()
+        pal.setColor(QPalette.Window, QColor('red'))
+        self.l.setPalette(pal)
         b = QPushButton("Start thread!")
         c = QPushButton("Stop thread!")
         b.pressed.connect(self.start_thread)
@@ -32,6 +41,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.l)
         layout.addWidget(b)
         layout.addWidget(c)
+
         w= QWidget()
         w.setLayout(layout)
         self.setCentralWidget(w)
@@ -59,7 +69,7 @@ class MainWindow(QMainWindow):
         if self.pslib.count_cams() == 0:
             QMessageBox.about(self, "Error!", "No PS3 cameras connected")
             return
-        self.cam = self.pslib.open_cam()
+        self.cam = self.pslib.open_cam(cam_id=0, frame_w = 640, frame_h = 480, fps = 80)
 
         if self.cam is None:
             QMessageBox.about(self, "Error!", "Cannot open camera")
